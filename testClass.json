@@ -1,0 +1,6 @@
+{
+	"someInt":123,
+	"someString":"Hello World",
+	"pubVal": "Hi!",
+	"prop": 1337
+}
