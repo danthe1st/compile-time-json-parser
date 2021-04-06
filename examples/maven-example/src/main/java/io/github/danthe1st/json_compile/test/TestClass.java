@@ -33,5 +33,9 @@ public class TestClass {
 		String json= String.join("", Files.readAllLines(Path.of("testClass.json")));
 		TestClass obj = TestClassJSONLoader.fromJSON(json);
 		System.out.println(obj);
+		TestClass testObj=new TestClass();
+		testObj.setSomeString("test");
+		testObj.someInt=12345;
+		System.out.println(TestClassJSONLoader.toJSON(testObj));
 	}
 }

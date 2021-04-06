@@ -43,6 +43,10 @@ public class TestClass {
 String json= String.join("", Files.readAllLines(Path.of("testClass.json")));
 TestClass obj = TestClassJSONLoader.fromJSON(json);
 System.out.println(obj);
+TestClass testObj=new TestClass();
+testObj.setSomeString("test");
+testObj.someInt=12345;
+System.out.println(TestClassJSONLoader.toJSON(testObj));
 ```
 
 ### Example
@@ -50,13 +54,13 @@ System.out.println(obj);
 An example project can be found in the directory `examples/maven-example`.
 
 * Import `Compile-time JSON-parser` in IntelliJ as a maven project
+* Run `mvn clean install` in that project
 * Expand the `examples/maven-example` directory
 * Right-click on the file `pom.xml` in that directory and select `Add as a Maven Project`
-* Enable annotation processing for this project under `Settings`>`Build, Execution, Deployment`>`Compiler`>`Annotation Processors`>`Enable Annotation Processing`
+* Enable annotation processing for this project under `Settings`>`Build, Execution, Deployment`>`Compiler`>`Annotation Processors`>`Maven default annotation processors profile`>`json-parser-maven-example`>Enable Annotation Processing`
 * Run `TestClass` in `examples/maven-example/src/main/java/io/github/danthe1st/json_compile/test/TestClass`
 
 ### Limitations
 
 * Currently, the only supported data types are `int` and `String`.
 * Eclipse may not detect the annotation processor
-* Converting objects to JSON is currently not supported

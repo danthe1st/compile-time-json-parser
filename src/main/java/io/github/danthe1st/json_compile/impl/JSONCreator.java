@@ -38,7 +38,7 @@ public class JSONCreator extends AbstractProcessor {
 
 	private static final String JSONOBJECT_PARAM_NAME = "data";
 	
-	private static final Map<String, String> simpleAssignments=Map.of("java.lang.String","getString","int","getInt");
+	private static final Map<String, String> simpleAssignments=Map.of("java.lang.String","String","int","Int");
 
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -114,7 +114,7 @@ public class JSONCreator extends AbstractProcessor {
 			TypeMirror type = jsonOperation.getType();
 			String typeName=type.toString();
 			if(simpleAssignments.containsKey(typeName)) {
-				String val=JSONOBJECT_PARAM_NAME+"."+simpleAssignments.get(typeName)+"(\""+jsonOperation.getAttributeName()+"\")";
+				String val=JSONOBJECT_PARAM_NAME+".get"+simpleAssignments.get(typeName)+"(\""+jsonOperation.getAttributeName()+"\")";
 				switch (jsonOperation.getOpType()) {
 				case FIELD:
 					writer.addAssignment("ret."+jsonOperation.getAttributeName(), val);
@@ -123,7 +123,6 @@ public class JSONCreator extends AbstractProcessor {
 					writer.addMethodCall("ret","set"+Character.toUpperCase(jsonOperation.getAttributeName().charAt(0))+(jsonOperation.getAttributeName().length()>1?jsonOperation.getAttributeName().substring(1):""),val);
 					break;
 				}
-				
 			}else {
 				processingEnv.getMessager().printMessage(Kind.ERROR, "type "+typeName+" is currenly not supported");
 			}
@@ -138,7 +137,42 @@ public class JSONCreator extends AbstractProcessor {
 
 		writer.beginMethod("fromJSON", element.toString(),
 				new VariableDefinition(String.class.getCanonicalName(), JSONOBJECT_PARAM_NAME));
-		writer.addMethodCall(fullyQualidiedClassName,"fromJSON","new JSONObject("+JSONOBJECT_PARAM_NAME+")");
+		writer.addReturn("fromJSON(new "+JSONObject.class.getCanonicalName()+"("+JSONOBJECT_PARAM_NAME+"))");
+		writer.endMethod();
+
+		writer.beginMethod("toJSONObject", JSONObject.class.getCanonicalName(),
+				new VariableDefinition(element.toString(), "obj"));
+
+		writer.addAssignment(JSONObject.class.getCanonicalName()+" "+JSONOBJECT_PARAM_NAME,"new "+JSONObject.class.getCanonicalName()+"()");
+
+		for (JSONOperation jsonOperation : operations) {
+			TypeMirror type = jsonOperation.getType();
+			String typeName=type.toString();
+			if(simpleAssignments.containsKey(typeName)) {
+				String val=null;
+				//=JSONOBJECT_PARAM_NAME+"."+simpleAssignments.get(typeName)+"(\""+jsonOperation.getAttributeName()+"\")";
+				switch (jsonOperation.getOpType()) {
+					case FIELD:
+						val="obj."+jsonOperation.getAttributeName();
+						break;
+					case PROPERTY:
+						val="obj.get"+Character.toUpperCase(jsonOperation.getAttributeName().charAt(0))+(jsonOperation.getAttributeName().length()>1?jsonOperation.getAttributeName().substring(1):"")+"()";
+						break;
+				}
+				if(val!=null){
+					writer.addMethodCall(JSONOBJECT_PARAM_NAME,"put","\""+jsonOperation.getAttributeName()+"\"",val);
+				}
+			}else {
+				processingEnv.getMessager().printMessage(Kind.ERROR, "type "+typeName+" is currenly not supported");
+			}
+			//TODO objects, arrays, primitives
+		}
+		writer.addReturn("data");
+		writer.endMethod();
+
+		writer.beginMethod("toJSON", String.class.getCanonicalName(),
+				new VariableDefinition(element.toString(), "obj"));
+		writer.addReturn("toJSONObject(obj).toString()");
 		writer.endMethod();
 
 		writer.endClass();
