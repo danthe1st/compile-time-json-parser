@@ -136,6 +136,11 @@ public class JSONCreator extends AbstractProcessor {
 			processingEnv.getMessager().printMessage(Kind.ERROR, "Missing public no-args-constructor", element);
 		}
 
+		writer.beginMethod("fromJSON", element.toString(),
+				new VariableDefinition(String.class.getCanonicalName(), JSONOBJECT_PARAM_NAME));
+		writer.addMethodCall(fullyQualidiedClassName,"fromJSON","new JSONObject("+JSONOBJECT_PARAM_NAME+")");
+		writer.endMethod();
+
 		writer.endClass();
 	}
 

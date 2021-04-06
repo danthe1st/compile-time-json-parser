@@ -38,10 +38,10 @@ public class TestClass {
 }
 ```
 * When compiling the class, a class suffixed with `JSONLoader` should be automatically generated.<br/>
-  This class contains a method named `fromJSON` that creates an instance of the data class from a `JSONObject`:
+  This class contains a method named `fromJSON` that creates an instance of the data class from a `String`:
 ```java
 String json= String.join("", Files.readAllLines(Path.of("testClass.json")));
-TestClass obj = TestClassJSONLoader.fromJSON(new JSONObject(json));
+TestClass obj = TestClassJSONLoader.fromJSON(json);
 System.out.println(obj);
 ```
 
@@ -57,4 +57,6 @@ An example project can be found in the directory `examples/maven-example`.
 
 ### Limitations
 
-Currently, the only supported data types are `int` and `String`.
+* Currently, the only supported data types are `int` and `String`.
+* Eclipse may not detect the annotation processor
+* Converting objects to JSON is currently not supported

@@ -31,7 +31,7 @@ public class TestClass {
 
 	public static void main(String[] args) throws IOException {
 		String json= String.join("", Files.readAllLines(Path.of("testClass.json")));
-		TestClass obj = TestClassJSONLoader.fromJSON(new JSONObject(json));
+		TestClass obj = TestClassJSONLoader.fromJSON(json);
 		System.out.println(obj);
 	}
 }
