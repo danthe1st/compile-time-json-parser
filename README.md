@@ -64,3 +64,4 @@ An example project can be found in the directory `examples/maven-example`.
 
 * Currently, the only supported data types are `int` and `String`.
 * Eclipse may not detect the annotation processor
+* Compile-time JSON-parser is not yet published to maven central so you will have to build it by yourself.
