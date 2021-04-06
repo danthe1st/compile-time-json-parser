@@ -1,6 +1,4 @@
 {
-	"someInt":123,
-	"someString":"Hello World",
-	"pubVal": "Hi!",
-	"prop": 1337
+  "someInt": 123,
+  "someString": "Hello World"
 }

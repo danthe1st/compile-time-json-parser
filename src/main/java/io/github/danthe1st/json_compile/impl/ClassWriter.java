@@ -158,6 +158,17 @@ public class ClassWriter implements AutoCloseable{
 		writer.write(")");
 		endStatement();
 	}
+
+	public void beginIf(String condition) throws IOException {
+		writer.write("if (");
+		writer.write(condition);
+		writer.write(") ");
+		beginBlock();
+	}
+
+	public void endIf() throws IOException {
+		endBlock();
+	}
 	
 	private void endStatement() throws IOException {
 		writer.write(";");
