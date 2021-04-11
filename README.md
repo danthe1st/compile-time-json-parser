@@ -26,15 +26,34 @@ The generated JSON-parser uses `org.json:json`.
 import io.github.danthe1st.json_compile.api.GenerateJSON;
 @GenerateJSON
 public class TestClass {
-	private int privVal;
-	public String pubVal;
-	
-	public int getProp() {
-		return privVal;
-	}
-	public void setProp(int i) {
-		this.privVal=i;
-	}
+  public int someInt;
+  private String someString;
+  private int[][] someArray;
+
+  public String getSomeString() {
+    return someString;
+  }
+
+  public void setSomeString(String someString) {
+    this.someString = someString;
+  }
+
+  public int[][] getSomeArray() {
+    return someArray;
+  }
+
+  public void setSomeArray(int[][] someArray) {
+    this.someArray = someArray;
+  }
+  
+  @Override
+  public String toString() {
+    return "TestClass{" +
+            "someInt=" + someInt +
+            ", someString='" + someString + '\'' +
+            ", someArray=" + Arrays.deepToString(someArray) +
+            '}';
+  }
 }
 ```
 * When compiling the class, a class suffixed with `JSONLoader` should be automatically generated.<br/>
@@ -46,6 +65,7 @@ System.out.println(obj);
 TestClass testObj=new TestClass();
 testObj.setSomeString("test");
 testObj.someInt=12345;
+testObj.someArray=new int[][]{{1,2,3},{},null,{1,2,3,4,5,6}};
 System.out.println(TestClassJSONLoader.toJSON(testObj));
 ```
 
@@ -62,6 +82,7 @@ An example project can be found in the directory `examples/maven-example`.
 
 ### Limitations
 
-* Currently, the only supported data types are `int` and `String`.
+* Currently, the only supported data types `String`, `int`, objects and arrays.
+* Generics are not supported in any way
 * Eclipse may not detect the annotation processor
 * Compile-time JSON-parser is not yet published to maven central so you will have to build it by yourself.

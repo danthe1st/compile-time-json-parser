@@ -1,4 +1,10 @@
 {
   "someInt": 123,
-  "someString": "Hello World"
+  "someString": "Hello World",
+  "someArray": [
+    [1,2,3,4,5],
+    [-1,-1337],
+    [],
+    null
+  ]
 }

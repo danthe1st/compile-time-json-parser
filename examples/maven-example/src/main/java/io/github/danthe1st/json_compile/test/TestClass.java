@@ -3,6 +3,7 @@ package io.github.danthe1st.json_compile.test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import org.json.JSONObject;
 
@@ -14,6 +15,8 @@ public class TestClass {
 	public int someInt;
 	
 	private String someString;
+
+	private int[][] someArray;
 	
 	public String getSomeString() {
 		return someString;
@@ -23,10 +26,21 @@ public class TestClass {
 		this.someString = someString;
 	}
 
+	public int[][] getSomeArray() {
+		return someArray;
+	}
+
+	public void setSomeArray(int[][] someArray) {
+		this.someArray = someArray;
+	}
 
 	@Override
 	public String toString() {
-		return "TestClass [someInt=" + someInt + ", someString=" + someString + "]";
+		return "TestClass{" +
+				"someInt=" + someInt +
+				", someString='" + someString + '\'' +
+				", someArray=" + Arrays.deepToString(someArray) +
+				'}';
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -36,6 +50,7 @@ public class TestClass {
 		TestClass testObj=new TestClass();
 		testObj.setSomeString("test");
 		testObj.someInt=12345;
+		testObj.someArray=new int[][]{{1,2,3},{},null,{1,2,3,4,5,6}};
 		System.out.println(TestClassJSONLoader.toJSON(testObj));
 	}
 }

@@ -169,6 +169,21 @@ public class ClassWriter implements AutoCloseable{
 	public void endIf() throws IOException {
 		endBlock();
 	}
+
+	public void beginSimpleFor(String init,String condition,String advancement) throws IOException{
+		writer.write("for (");
+		writer.write(init);
+		writer.write("; ");
+		writer.write(condition);
+		writer.write("; ");
+		writer.write(advancement);
+		writer.write(")");
+		beginBlock();
+	}
+
+	public void endFor() throws IOException{
+		endBlock();
+	}
 	
 	private void endStatement() throws IOException {
 		writer.write(";");
@@ -176,12 +191,12 @@ public class ClassWriter implements AutoCloseable{
 	}
 	//endregion
 	
-	private void beginBlock() throws IOException {
+	public void beginBlock() throws IOException {
 		writer.write("{");
 		indentation++;
 		nextLine();
 	}
-	private void endBlock() throws IOException {
+	public void endBlock() throws IOException {
 		writer.write("}");
 		indentation--;
 		nextLine();

@@ -26,6 +26,6 @@ public class JSONOperation {
 	}
 
 	public enum OperationType {
-		FIELD, PROPERTY
+		FIELD, ARRAY_ELEMENT, PROPERTY
 	}
 }
