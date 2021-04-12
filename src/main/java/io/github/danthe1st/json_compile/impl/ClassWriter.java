@@ -170,6 +170,17 @@ public class ClassWriter implements AutoCloseable{
 		endBlock();
 	}
 
+	public void beginForEach(String typeName, String variableName, String iterable) throws IOException {
+		writer.write("for (");
+		writer.write(typeName);
+		writer.write(" ");
+		writer.write(variableName);
+		writer.write(" : ");
+		writer.write(iterable);
+		writer.write(")");
+		beginBlock();
+	}
+
 	public void beginSimpleFor(String init,String condition,String advancement) throws IOException{
 		writer.write("for (");
 		writer.write(init);
@@ -184,13 +195,17 @@ public class ClassWriter implements AutoCloseable{
 	public void endFor() throws IOException{
 		endBlock();
 	}
-	
+
+	public void addStatement(String stmt) throws IOException {
+		writer.write(stmt);
+		endStatement();
+	}
 	private void endStatement() throws IOException {
 		writer.write(";");
 		nextLine();
 	}
+
 	//endregion
-	
 	public void beginBlock() throws IOException {
 		writer.write("{");
 		indentation++;
@@ -205,14 +220,14 @@ public class ClassWriter implements AutoCloseable{
 		writer.write(System.lineSeparator());
 		indent();
 	}
+
 	private void indent() throws IOException {
 		writer.write("\t".repeat(indentation));
 	}
-	
+
 	@Override
 	public void close() throws IOException {
-		writer.close();	
+		writer.close();
 	}
 
-	
 }

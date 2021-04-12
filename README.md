@@ -80,9 +80,17 @@ An example project can be found in the directory `examples/maven-example`.
 * Enable annotation processing for this project under `Settings`>`Build, Execution, Deployment`>`Compiler`>`Annotation Processors`>`Maven default annotation processors profile`>`json-parser-maven-example`>Enable Annotation Processing`
 * Run `TestClass` in `examples/maven-example/src/main/java/io/github/danthe1st/json_compile/test/TestClass`
 
-### Limitations
+### Supported types
+* `String`
+* `int`
+* `long`
+* Wrapper classes for supported primitive types
+* Objects of classes annotated with `@GenerateJSON`
+* `Collection`s if they are not part of other collections or arrays
+* Arrays
 
-* Currently, the only supported data types `String`, `int`, objects and arrays.
-* Generics are not supported in any way
+### Limitations
+* It is not possible to create an array/collection of collections
+* Generic objects are not supported (except generic collections)
 * Eclipse may not detect the annotation processor
 * Compile-time JSON-parser is not yet published to maven central so you will have to build it by yourself.

@@ -1,13 +1,11 @@
 package io.github.danthe1st.json_compile.test;
 
+import io.github.danthe1st.json_compile.api.GenerateJSON;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-
-import org.json.JSONObject;
-
-import io.github.danthe1st.json_compile.api.GenerateJSON;
 
 @GenerateJSON
 public class TestClass {

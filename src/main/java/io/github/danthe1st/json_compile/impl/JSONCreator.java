@@ -2,37 +2,27 @@ package io.github.danthe1st.json_compile.impl;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic.Kind;
 
+import io.github.danthe1st.json_compile.impl.data.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.tools.JavaFileObject;
 
 import io.github.danthe1st.json_compile.api.GenerateJSON;
-import io.github.danthe1st.json_compile.impl.data.JSONOperation;
-import io.github.danthe1st.json_compile.impl.data.JSONOperation.OperationType;
-import io.github.danthe1st.json_compile.impl.data.VariableDefinition;
 
 @SupportedAnnotationTypes("io.github.danthe1st.json_compile.api.GenerateJSON")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
@@ -40,7 +30,9 @@ public class JSONCreator extends AbstractProcessor {
 
     private static final String JSONOBJECT_PARAM_NAME = "data";
 
-    private static final Map <String, String> simpleAssignments = Map.of("java.lang.String", "String", "int", "Int", "long", "Long");
+    private static final Map <String, String> simpleAssignments = Map.of("java.lang.String", "String",
+            "int", "Int","java.lang.Integer","Int",
+            "long", "Long","java.lang.Long","Long");
 
     @Override
     public boolean process(Set <? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -92,8 +84,7 @@ public class JSONCreator extends AbstractProcessor {
                     break;
                 case FIELD:
 
-                    operations.add(new JSONOperation(((VariableElement) innerElement).getSimpleName().toString(),
-                            OperationType.FIELD, innerElement.asType()));
+                    operations.add(new FieldOperation(((VariableElement) innerElement).getSimpleName().toString(), innerElement.asType()));
                     break;
                 case METHOD:
                     JSONOperation op = loadMethodInfo(innerElement);
@@ -148,6 +139,8 @@ public class JSONCreator extends AbstractProcessor {
         writer.endClass();
     }
 
+
+
     //TODO arrays/collections, more primitives
     private void addPropertyFromJSON(ClassWriter writer, JSONOperation jsonOperation,String jsonObjectName) throws IOException {
         TypeMirror type = jsonOperation.getType();
@@ -157,9 +150,7 @@ public class JSONCreator extends AbstractProcessor {
             //TODO test, add in addPropertyToJSON
             ArrayType arrayType = (ArrayType) type;
 
-            String jsonArrayName=jsonObjectName+capitalizeFirst(jsonOperation.getAttributeName()).replaceAll("\\[.*]","")+"JsonArray";
-            String optArgument=getJSONAccessName(jsonOperation);
-            writer.addAssignment(JSONArray.class.getCanonicalName() +" "+jsonArrayName,jsonObjectName+".optJSONArray("+optArgument+")");
+            String jsonArrayName=addCreateJSONArrayCode(writer,jsonOperation,jsonObjectName);
 
             String actualArrayName=jsonOperation.getAttributeName().replaceAll("\\[.*]","")+"DataArray";
             writer.addAssignment(arrayType.getComponentType().toString()+"[] "+actualArrayName,"null");
@@ -180,65 +171,94 @@ public class JSONCreator extends AbstractProcessor {
             String counterVar=jsonArrayName+"Counter";
             writer.beginSimpleFor("int "+counterVar+"=0",counterVar+"<"+jsonArrayName+".length()",counterVar+"++");
 
-            addPropertyFromJSON(writer,new JSONOperation(actualArrayName+"["+counterVar+"]",OperationType.ARRAY_ELEMENT,arrayType.getComponentType()),jsonArrayName);
+            addPropertyFromJSON(writer,new ArrayElementOperation(actualArrayName+"["+counterVar+"]",arrayType.getComponentType()),jsonArrayName);
 
             writer.endFor();
             val=actualArrayName;
             writer.endIf();
+        }else if(isCollection(type)){
+            TypeMirror collectionType=getCollectionType(type);
+            if(collectionType==null){
+                processingEnv.getMessager().printMessage(Kind.ERROR,"Cannot infer type",type instanceof DeclaredType? ((DeclaredType) type).asElement() : null);
+                return;
+            }
+            String jsonArrayName=addCreateJSONArrayCode(writer,jsonOperation,jsonObjectName);
+            String counterVar=jsonArrayName+"Counter";
+
+            String dataName=jsonArrayName+"Data";
+            writer.addAssignment(typeName+" "+dataName,jsonOperation.getAccessor("ret"));//TODO check if ret is the correct object
+            writer.beginIf(jsonArrayName+"!=null");
+            writer.beginSimpleFor("int "+counterVar+"=0",counterVar+"<"+jsonArrayName+".length()",counterVar+"++");
+
+
+            addPropertyFromJSON(writer,new CollectionElementOperation(dataName,counterVar/*TODO what to do with collections of collections? How to create those?*/,collectionType),jsonArrayName);
+
+            val=dataName;
+
+            writer.endIf();
+            writer.endFor();
         } else if(simpleAssignments.containsKey(typeName)) {
-            String name=getJSONAccessName(jsonOperation);
+            String name=jsonOperation.getJSONAccessName();
             val = jsonObjectName + ".opt" + simpleAssignments.get(typeName) + "(" + name + ")";
         } else {
             TypeElement referencedElement = processingEnv.getElementUtils().getTypeElement(typeName);
             if(referencedElement != null && referencedElement.getAnnotation(GenerateJSON.class) != null) {
-                val = referencedElement.toString() + "JSONLoader.fromJSON(" + jsonObjectName + ".optJSONObject(\"" + jsonOperation.getAttributeName() + "\"))";
+                val = referencedElement.toString() + "JSONLoader.fromJSON(" + jsonObjectName + ".optJSONObject(" + jsonOperation.getJSONAccessName() + "))";
             }
         }
         if(val == null) {
             processingEnv.getMessager().printMessage(Kind.ERROR, "type " + typeName + " is not supported");
         } else {
-            switch(jsonOperation.getOpType()) {
-                case FIELD:
-                    writer.addAssignment("ret." + jsonOperation.getAttributeName(), val);
-                    break;
-                case PROPERTY:
-                    writer.addMethodCall("ret", "set" + capitalizeFirst(jsonOperation.getAttributeName()), val);
-                    break;
-                case ARRAY_ELEMENT:
-                    writer.addAssignment(jsonOperation.getAttributeName(),val);
-                    break;
-            }
+            writer.addStatement(jsonOperation.getMutator("ret",val));
         }
     }
 
-    private String getJSONAccessName(JSONOperation jsonOperation){
-        String name=jsonOperation.getAttributeName();
-        if(jsonOperation.getOpType()==OperationType.ARRAY_ELEMENT){
-            name=name.substring(name.indexOf('[')+1,name.indexOf(']'));
-        }else{
-            name='"'+name+'"';
+    private String addCreateJSONArrayCode(ClassWriter writer, JSONOperation jsonOperation, String jsonObjectName) throws IOException {
+        String jsonArrayName=jsonObjectName+capitalizeFirst(jsonOperation.getAttributeName()).replaceAll("\\[.*]","")+"JsonArray";
+        String optArgument=jsonOperation.getJSONAccessName();
+        writer.addAssignment(JSONArray.class.getCanonicalName() +" "+jsonArrayName,jsonObjectName+".optJSONArray("+optArgument+")");
+        return jsonArrayName;
+    }
+
+    private boolean isCollection(TypeMirror type) {
+        return getCollectionType(type)!=null;//TODO this may return false with generics
+        //return processingEnv.getTypeUtils().isSubtype(type,processingEnv.getElementUtils().getTypeElement(Collection.class.getSimpleName()).asType());
+    }
+
+    private TypeMirror getCollectionType(TypeMirror type){
+        if(!(type instanceof DeclaredType)) {
+            return null;
         }
-        return name;
+        TypeElement elem= (TypeElement) ((DeclaredType) type).asElement();
+        for(TypeMirror iFace : elem.getInterfaces()) {
+            if(Collection.class.getCanonicalName().equals(((DeclaredType)iFace).asElement().toString())){
+
+                List <? extends TypeMirror> typeArgs = ((DeclaredType) iFace).getTypeArguments();
+                if(typeArgs.size()==1){
+                    TypeMirror genericArg = typeArgs.get(0);
+                    if(genericArg.getKind()==TypeKind.TYPEVAR){
+                        for(int i = 0; i < elem.getTypeParameters().size(); i++) {
+                            if(elem.getTypeParameters().get(i).getSimpleName().toString().equals(genericArg.toString())){
+                                return ((DeclaredType) type).getTypeArguments().get(i);//TODO test this
+                            }
+                        }
+                    }
+                    return genericArg;
+                }
+                return null;
+            }
+        }
+        return null;
     }
 
     private void addPropertyToJSON(ClassWriter writer, JSONOperation jsonOperation,String jsonObjectName) throws IOException {
         TypeMirror type = jsonOperation.getType();
         String typeName = type.toString();
-        String val = null;
-        switch(jsonOperation.getOpType()) {
-            case FIELD:
-                val = "obj." + jsonOperation.getAttributeName();
-                break;
-            case PROPERTY:
-                val = "obj.get" + capitalizeFirst(jsonOperation.getAttributeName()) + "()";
-                break;
-            case ARRAY_ELEMENT:
-                val=jsonOperation.getAttributeName();
-        }
+        String val = jsonOperation.getAccessor("obj");//TODO check if obj is correct here
+
         if(val == null) {
             processingEnv.getMessager().printMessage(Kind.ERROR, "type " + typeName + " is currenly not supported");
         }else if(type.getKind()==TypeKind.ARRAY){
-            //TODO
             ArrayType arrayType = (ArrayType) type;
 
             String jsonArrayName=jsonObjectName+jsonOperation.getAttributeName().replaceAll("\\[.*]","");
@@ -250,20 +270,62 @@ public class JSONCreator extends AbstractProcessor {
             String counterVar=jsonArrayName+"Counter";
             writer.beginSimpleFor("int "+counterVar+"=0",counterVar+"<"+arrayName+".length",counterVar+"++");
 
-            writer.addMethodCall(jsonArrayName,"put",arrayName+"["+counterVar+"]");//TODO recursion?
+            addPropertyToJSON(writer, new ArrayElementOperation(arrayName+"["+counterVar+"]",arrayType.getComponentType()), jsonArrayName);
 
             writer.endFor();
-            writer.addMethodCall(jsonObjectName,"put","\""+jsonOperation.getAttributeName()+"\"",jsonArrayName);
+            if(jsonOperation.isChildType()){
+                writer.addMethodCall(jsonObjectName,"put",jsonArrayName);
+            }else{
+                writer.addMethodCall(jsonObjectName,"put","\""+jsonOperation.getAttributeName()+"\"",jsonArrayName);
+            }
             writer.endIf();
+        }else if(isCollection(type)){
+            if(jsonOperation.isChildType()){
+                processingEnv.getMessager().printMessage(Kind.ERROR,"Collections of collections are not supported",type instanceof DeclaredType? ((DeclaredType) type).asElement() : null);
+                return;
+            }
+            TypeMirror collectionType = getCollectionType(type);
+            if(collectionType==null){
+                processingEnv.getMessager().printMessage(Kind.ERROR,"Cannot infer type",type instanceof DeclaredType? ((DeclaredType) type).asElement() : null);
+                return;
+            }
+
+            String dataName=jsonObjectName+capitalizeFirst(jsonOperation.getAttributeName()).replaceAll("\\[.*]","");
+            String collectionName=dataName+"Collection";
+            String jsonArrayName=dataName+"JSONArray";//TODO null safe
+
+            writer.addAssignment(JSONArray.class.getCanonicalName()+" "+jsonArrayName,"new "+JSONArray.class.getCanonicalName()+"()");
+            writer.addAssignment(type.toString()+" "+collectionName,val);
+            writer.beginIf(collectionName+"!=null");
+            writer.beginForEach(collectionType.toString(),dataName,collectionName);
+
+            addPropertyToJSON(writer,new CollectionElementOperation(collectionName,dataName,collectionType),jsonArrayName);
+
+            writer.endFor();
+            writer.endIf();
+
+            if(jsonOperation.isChildType()){
+                writer.addMethodCall(jsonObjectName,"put",jsonArrayName);
+            }else{
+                writer.addMethodCall(jsonObjectName,"put","\""+jsonOperation.getAttributeName()+"\"",jsonArrayName);
+            }
+
         } else if(simpleAssignments.containsKey(typeName)) {
-            writer.addMethodCall(jsonObjectName, "put", "\"" + jsonOperation.getAttributeName() + "\"", val);
+            if(jsonOperation.isChildType()){
+                writer.addMethodCall(jsonObjectName, "put", val);
+            }else {
+                writer.addMethodCall(jsonObjectName, "put", "\"" + jsonOperation.getAttributeName() + "\"", val);
+            }
         } else {
             TypeElement referencedElement = processingEnv.getElementUtils().getTypeElement(typeName);
             if(referencedElement != null && referencedElement.getAnnotation(GenerateJSON.class) != null) {
-                writer.addMethodCall(jsonObjectName, "put", "\"" + jsonOperation.getAttributeName() + "\"", referencedElement.toString() + "JSONLoader.toJSONObject(" + val + ")");
+                if(jsonOperation.isChildType()){
+                    writer.addMethodCall(jsonObjectName, "put", referencedElement.toString() + "JSONLoader.toJSONObject(" + val + ")");
+                }else{
+                    writer.addMethodCall(jsonObjectName, "put", "\"" + jsonOperation.getAttributeName() + "\"", referencedElement.toString() + "JSONLoader.toJSONObject(" + val + ")");
+                }
             }
         }
-
     }
 
     private void addReturnIfNull(ClassWriter writer, String paramName) throws IOException {
@@ -286,7 +348,7 @@ public class JSONCreator extends AbstractProcessor {
             for(Element sibling : element.getEnclosingElement().getEnclosedElements()) {
                 if(sibling.getKind() == ElementKind.METHOD
                         && ("set" + name.substring(3)).equals(sibling.getSimpleName().toString())) {
-                    return new JSONOperation(propName, OperationType.PROPERTY,
+                    return new PropertyOperation(propName,
                             ((ExecutableElement) element).getReturnType());
                 }
             }
@@ -294,7 +356,7 @@ public class JSONCreator extends AbstractProcessor {
         return null;
     }
 
-    private String capitalizeFirst(String toCapitalize){
+    public static String capitalizeFirst(String toCapitalize){
         return Character.toUpperCase(toCapitalize.charAt(0)) + (toCapitalize.length() > 1 ? toCapitalize.substring(1):"");
     }
 }
