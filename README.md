@@ -84,6 +84,10 @@ An example project can be found in the directory `examples/maven-example`.
 * `String`
 * `int`
 * `long`
+* `float`
+* `double`
+* `boolean`
+* Enums
 * Wrapper classes for supported primitive types
 * Objects of classes annotated with `@GenerateJSON`
 * `Collection`s if they are not part of other collections or arrays
@@ -91,6 +95,9 @@ An example project can be found in the directory `examples/maven-example`.
 
 ### Limitations
 * It is not possible to create an array/collection of collections
+* Objects annotated with `@GenerateJSON` need to have a no-args-constructor
+* Collections need to be initialized in the constructor
 * Generic objects are not supported (except generic collections)
 * Eclipse may not detect the annotation processor
 * Compile-time JSON-parser is not yet published to maven central so you will have to build it by yourself.
+* Configuration is not supported

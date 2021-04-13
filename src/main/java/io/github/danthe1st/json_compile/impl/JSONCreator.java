@@ -30,9 +30,12 @@ public class JSONCreator extends AbstractProcessor {
 
     private static final String JSONOBJECT_PARAM_NAME = "data";
 
-    private static final Map <String, String> simpleAssignments = Map.of("java.lang.String", "String",
-            "int", "Int","java.lang.Integer","Int",
-            "long", "Long","java.lang.Long","Long");
+    private static final Map <String, String> simpleAssignments = Map.ofEntries(Map.entry("java.lang.String", "String"),
+            Map.entry("int", "Int"),Map.entry("java.lang.Integer","Int"),
+            Map.entry("long", "Long"),Map.entry("java.lang.Long","Long"),
+            Map.entry("boolean","Boolean"),Map.entry("java,lang.Boolean","Boolean"),
+            Map.entry("float","Float"),Map.entry("java,lang.Float","Float"),
+            Map.entry("double","Double"),Map.entry("java,lang.Double","Double"));
 
     @Override
     public boolean process(Set <? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -43,7 +46,6 @@ public class JSONCreator extends AbstractProcessor {
                 processingEnv.getMessager().printMessage(Kind.ERROR,
                         "An I/O error occured during processing element: " + e.getMessage(), element);
             }
-            processingEnv.getMessager().printMessage(Kind.NOTE, "Element detected", element);
         }
         return false;
     }
@@ -52,6 +54,10 @@ public class JSONCreator extends AbstractProcessor {
         if(element.getKind() == ElementKind.CLASS) {
             DeclaredType typeMirror = (DeclaredType) element.asType();
             String newClassName = typeMirror.toString() + "JSONLoader";
+            if(element.getEnclosingElement()!=null&&element.getEnclosingElement().getKind()!=ElementKind.PACKAGE){
+                processingEnv.getMessager().printMessage(Kind.ERROR,"Nested elements are not supported",element);
+                return;
+            }
 
             JavaFileObject loaderSource = processingEnv.getFiler().createSourceFile(newClassName, element);
             try(ClassWriter writer = new ClassWriter(new BufferedWriter(loaderSource.openWriter()))) {
@@ -139,42 +145,41 @@ public class JSONCreator extends AbstractProcessor {
         writer.endClass();
     }
 
-
-
-    //TODO arrays/collections, more primitives
     private void addPropertyFromJSON(ClassWriter writer, JSONOperation jsonOperation,String jsonObjectName) throws IOException {
         TypeMirror type = jsonOperation.getType();
         String typeName = type.toString();
         String val = null;
+        if(hasVisibilityProblems(type,true)){
+            return;
+        }
         if(type.getKind() == TypeKind.ARRAY) {
-            //TODO test, add in addPropertyToJSON
             ArrayType arrayType = (ArrayType) type;
 
-            String jsonArrayName=addCreateJSONArrayCode(writer,jsonOperation,jsonObjectName);
+            String jsonArrayName = addCreateJSONArrayCode(writer, jsonOperation, jsonObjectName);
 
-            String actualArrayName=jsonOperation.getAttributeName().replaceAll("\\[.*]","")+"DataArray";
-            writer.addAssignment(arrayType.getComponentType().toString()+"[] "+actualArrayName,"null");
+            String actualArrayName = jsonOperation.getAttributeName().replaceAll("\\[.*]", "") + "DataArray";
+            writer.addAssignment(arrayType.getComponentType().toString() + "[] " + actualArrayName, "null");
 
-            writer.beginIf(jsonArrayName+"!=null");
+            writer.beginIf(jsonArrayName + "!=null");
 
-            String componentName=arrayType.getComponentType().toString();
-            int componentNameArrayStart=componentName.indexOf('[');
-            String componentNameBefore=componentName;
-            String componentNameAfter="";
-            if(componentNameArrayStart!=-1){
-                componentNameBefore=componentName.substring(0,componentNameArrayStart);
-                componentNameAfter=componentName.substring(componentNameArrayStart);
+            String componentName = arrayType.getComponentType().toString();
+            int componentNameArrayStart = componentName.indexOf('[');
+            String componentNameBefore = componentName;
+            String componentNameAfter = "";
+            if(componentNameArrayStart != -1) {
+                componentNameBefore = componentName.substring(0, componentNameArrayStart);
+                componentNameAfter = componentName.substring(componentNameArrayStart);
             }
 
-            writer.addAssignment(actualArrayName,"new "+componentNameBefore+"["+jsonArrayName+".length()]"+componentNameAfter+" ");
+            writer.addAssignment(actualArrayName, "new " + componentNameBefore + "[" + jsonArrayName + ".length()]" + componentNameAfter + " ");
 
-            String counterVar=jsonArrayName+"Counter";
-            writer.beginSimpleFor("int "+counterVar+"=0",counterVar+"<"+jsonArrayName+".length()",counterVar+"++");
+            String counterVar = jsonArrayName + "Counter";
+            writer.beginSimpleFor("int " + counterVar + "=0", counterVar + "<" + jsonArrayName + ".length()", counterVar + "++");
 
-            addPropertyFromJSON(writer,new ArrayElementOperation(actualArrayName+"["+counterVar+"]",arrayType.getComponentType()),jsonArrayName);
+            addPropertyFromJSON(writer, new ArrayElementOperation(actualArrayName + "[" + counterVar + "]", arrayType.getComponentType()), jsonArrayName);
 
             writer.endFor();
-            val=actualArrayName;
+            val = actualArrayName;
             writer.endIf();
         }else if(isCollection(type)){
             TypeMirror collectionType=getCollectionType(type);
@@ -197,7 +202,9 @@ public class JSONCreator extends AbstractProcessor {
 
             writer.endIf();
             writer.endFor();
-        } else if(simpleAssignments.containsKey(typeName)) {
+        } else if(type instanceof DeclaredType&&((DeclaredType) type).asElement().getKind()==ElementKind.ENUM){
+            val = jsonObjectName + ".optEnum("+type+".class," + jsonOperation.getJSONAccessName() + ")";
+        }else if(simpleAssignments.containsKey(typeName)) {
             String name=jsonOperation.getJSONAccessName();
             val = jsonObjectName + ".opt" + simpleAssignments.get(typeName) + "(" + name + ")";
         } else {
@@ -251,11 +258,24 @@ public class JSONCreator extends AbstractProcessor {
         return null;
     }
 
+    private boolean hasVisibilityProblems(TypeMirror type,boolean displayError){
+        if(type instanceof DeclaredType){
+            DeclaredType declType= (DeclaredType) type;
+            if(!declType.asElement().getModifiers().contains(Modifier.PUBLIC)){
+                processingEnv.getMessager().printMessage(Kind.ERROR,"only public types are supported", declType.asElement());
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void addPropertyToJSON(ClassWriter writer, JSONOperation jsonOperation,String jsonObjectName) throws IOException {
         TypeMirror type = jsonOperation.getType();
         String typeName = type.toString();
         String val = jsonOperation.getAccessor("obj");//TODO check if obj is correct here
-
+        if(hasVisibilityProblems(type,false)){
+            return;
+        }
         if(val == null) {
             processingEnv.getMessager().printMessage(Kind.ERROR, "type " + typeName + " is currenly not supported");
         }else if(type.getKind()==TypeKind.ARRAY){
@@ -309,7 +329,12 @@ public class JSONCreator extends AbstractProcessor {
             }else{
                 writer.addMethodCall(jsonObjectName,"put","\""+jsonOperation.getAttributeName()+"\"",jsonArrayName);
             }
-
+        } else if(type instanceof DeclaredType&&((DeclaredType) type).asElement().getKind()==ElementKind.ENUM){
+            if(jsonOperation.isChildType()){
+                writer.addMethodCall(jsonObjectName,"put",val);
+            }else{
+                writer.addMethodCall(jsonObjectName,"put","\""+jsonOperation.getAttributeName()+"\"",val);
+            }
         } else if(simpleAssignments.containsKey(typeName)) {
             if(jsonOperation.isChildType()){
                 writer.addMethodCall(jsonObjectName, "put", val);
