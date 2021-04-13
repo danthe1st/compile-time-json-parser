@@ -19,20 +19,15 @@
 				<version>3.8.1</version>
 				<configuration>
 					<release>11</release>
-					<!--<proc>none</proc>-->
+					<!--<proc>none</proc> 
+					<annotationProcessorPaths>
+						<annotationProcessorPath>
+							<groupId>io.github.danthe1st</groupId>
+							<artifactId>compile-time-json-parser</artifactId>
+							<version>0.0.1-SNAPSHOT</version>
+						</annotationProcessorPath>
+					</annotationProcessorPaths>-->
 				</configuration>
-				<!--<executions>
-					<execution>
-						<id>run-annotation-processor</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<proc>only</proc>
-						</configuration>
-					</execution>
-				</executions>-->
 			</plugin>
 		</plugins>
 	</build>

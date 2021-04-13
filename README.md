@@ -77,7 +77,7 @@ An example project can be found in the directory `examples/maven-example`.
 * Run `mvn clean install` in that project
 * Expand the `examples/maven-example` directory
 * Right-click on the file `pom.xml` in that directory and select `Add as a Maven Project`
-* Enable annotation processing for this project under `Settings`>`Build, Execution, Deployment`>`Compiler`>`Annotation Processors`>`Maven default annotation processors profile`>`json-parser-maven-example`>Enable Annotation Processing`
+* [Make sure you set up your IDE correctly](#ide-specific-configuration)
 * Run `TestClass` in `examples/maven-example/src/main/java/io/github/danthe1st/json_compile/test/TestClass`
 
 ### Supported types
@@ -90,7 +90,7 @@ An example project can be found in the directory `examples/maven-example`.
 * Enums
 * Wrapper classes for supported primitive types
 * Objects of classes annotated with `@GenerateJSON`
-* `Collection`s if they are not part of other collections or arrays
+* `Collection`s if they are not part of other collections or arrays, `Collections` of classes annotated with `@GenerateJSON` that contain collections are supported, however
 * Arrays
 
 ### Limitations
@@ -98,6 +98,22 @@ An example project can be found in the directory `examples/maven-example`.
 * Objects annotated with `@GenerateJSON` need to have a no-args-constructor
 * Collections need to be initialized in the constructor
 * Generic objects are not supported (except generic collections)
-* Eclipse may not detect the annotation processor
-* Compile-time JSON-parser is not yet published to maven central so you will have to build it by yourself.
+* Compile-time JSON-parser is not yet published to maven central, so you will have to build it by yourself.
 * Configuration is not supported
+
+### IDE-specific configuration
+
+### Eclipse
+* Install the [m2e-apt plugin](https://marketplace.eclipse.org/content/m2e-apt)
+  [![Drag to your running Eclipse* workspace. *Requires Eclipse Marketplace Client](https://marketplace.eclipse.org/sites/all/themes/solstice/public/images/marketplace/btn-install.svg)](http://marketplace.eclipse.org/marketplace-client-intro?mpc_install=1216155 "Drag to your running Eclipse* workspace. *Requires Eclipse Marketplace Client")
+
+![m2e-apt](https://user-images.githubusercontent.com/34687786/114560029-9713f280-9c6c-11eb-889d-096ee46b52c0.png)
+
+* Right-click the project, open `Properties`>`Java Compiler`>`Annotation Processing`> and select `Enable Project Specific Settings` and `Enable processing in Editor`
+
+https://user-images.githubusercontent.com/34687786/114566218-56b77300-9c72-11eb-88f0-6c030fe4e8ac.mp4
+
+### IntelliJ
+* Enable annotation processing for this project under `Settings`>`Build, Execution, Deployment`>`Compiler`>`Annotation Processors`>`Maven default annotation processors profile`>`json-parser-maven-example`>Enable Annotation Processing`
+
+https://user-images.githubusercontent.com/34687786/114572301-a6e50400-9c77-11eb-9a2d-de3bdac3688a.mp4
