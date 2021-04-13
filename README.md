@@ -111,9 +111,9 @@ An example project can be found in the directory `examples/maven-example`.
 
 * Right-click the project, open `Properties`>`Java Compiler`>`Annotation Processing`> and select `Enable Project Specific Settings` and `Enable processing in Editor`
 
-https://user-images.githubusercontent.com/34687786/114566218-56b77300-9c72-11eb-88f0-6c030fe4e8ac.mp4
+[Video](https://user-images.githubusercontent.com/34687786/114566218-56b77300-9c72-11eb-88f0-6c030fe4e8ac.mp4)
 
 ### IntelliJ
-* Enable annotation processing for this project under `Settings`>`Build, Execution, Deployment`>`Compiler`>`Annotation Processors`>`Maven default annotation processors profile`>`json-parser-maven-example`>Enable Annotation Processing`
+* Enable annotation processing for this project under `Settings`>`Build, Execution, Deployment`>`Compiler`>`Annotation Processors`>`Maven default annotation processors profile`>`json-parser-maven-example`>`Enable Annotation Processing`
 
-https://user-images.githubusercontent.com/34687786/114572301-a6e50400-9c77-11eb-9a2d-de3bdac3688a.mp4
+[Video](https://user-images.githubusercontent.com/34687786/114572301-a6e50400-9c77-11eb-9a2d-de3bdac3688a.mp4)
