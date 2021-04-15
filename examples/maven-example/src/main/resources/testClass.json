@@ -1,0 +1,35 @@
+{
+  "privVal": 123,
+  "pubVal": "Hello World",
+  "data": [
+    [
+      1,
+      2,
+      3
+    ],
+    [],
+    null,
+    [
+      -1,
+      -1000,
+      1
+    ]
+  ],
+  "otherObject": {
+    "i": 1337
+  },
+  "list": [
+    [
+      {
+        "i": 1024
+      },
+      null,
+      {
+        "i": -1
+      }
+    ],
+    [],
+    null
+  ],
+  "someEnum": "B"
+}
