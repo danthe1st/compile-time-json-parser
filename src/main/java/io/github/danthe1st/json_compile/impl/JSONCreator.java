@@ -90,7 +90,7 @@ public class JSONCreator extends AbstractProcessor {
                     break;
                 case FIELD:
 
-                    operations.add(new FieldOperation(((VariableElement) innerElement).getSimpleName().toString(), innerElement.asType()));
+                    operations.add(new FieldOperation(innerElement.getSimpleName().toString(), innerElement.asType()));
                     break;
                 case METHOD:
                     JSONOperation op = loadMethodInfo(innerElement);
@@ -191,12 +191,12 @@ public class JSONCreator extends AbstractProcessor {
             String counterVar=jsonArrayName+"Counter";
 
             String dataName=jsonArrayName+"Data";
-            writer.addAssignment(typeName+" "+dataName,jsonOperation.getAccessor("ret"));//TODO check if ret is the correct object
+            writer.addAssignment(typeName+" "+dataName,jsonOperation.getAccessor("ret"));
             writer.beginIf(jsonArrayName+"!=null");
             writer.beginSimpleFor("int "+counterVar+"=0",counterVar+"<"+jsonArrayName+".length()",counterVar+"++");
 
 
-            addPropertyFromJSON(writer,new CollectionElementOperation(dataName,counterVar/*TODO what to do with collections of collections? How to create those?*/,collectionType),jsonArrayName);
+            addPropertyFromJSON(writer,new CollectionElementOperation(dataName,counterVar,collectionType),jsonArrayName);
 
             val=dataName;
 
@@ -210,7 +210,7 @@ public class JSONCreator extends AbstractProcessor {
         } else {
             TypeElement referencedElement = processingEnv.getElementUtils().getTypeElement(typeName);
             if(referencedElement != null && referencedElement.getAnnotation(GenerateJSON.class) != null) {
-                val = referencedElement.toString() + "JSONLoader.fromJSON(" + jsonObjectName + ".optJSONObject(" + jsonOperation.getJSONAccessName() + "))";
+                val = referencedElement + "JSONLoader.fromJSON(" + jsonObjectName + ".optJSONObject(" + jsonOperation.getJSONAccessName() + "))";
             }
         }
         if(val == null) {
@@ -228,8 +228,7 @@ public class JSONCreator extends AbstractProcessor {
     }
 
     private boolean isCollection(TypeMirror type) {
-        return getCollectionType(type)!=null;//TODO this may return false with generics
-        //return processingEnv.getTypeUtils().isSubtype(type,processingEnv.getElementUtils().getTypeElement(Collection.class.getSimpleName()).asType());
+        return getCollectionType(type)!=null;
     }
 
     private TypeMirror getCollectionType(TypeMirror type){
@@ -246,7 +245,7 @@ public class JSONCreator extends AbstractProcessor {
                     if(genericArg.getKind()==TypeKind.TYPEVAR){
                         for(int i = 0; i < elem.getTypeParameters().size(); i++) {
                             if(elem.getTypeParameters().get(i).getSimpleName().toString().equals(genericArg.toString())){
-                                return ((DeclaredType) type).getTypeArguments().get(i);//TODO test this
+                                return ((DeclaredType) type).getTypeArguments().get(i);
                             }
                         }
                     }
@@ -262,7 +261,9 @@ public class JSONCreator extends AbstractProcessor {
         if(type instanceof DeclaredType){
             DeclaredType declType= (DeclaredType) type;
             if(!declType.asElement().getModifiers().contains(Modifier.PUBLIC)){
-                processingEnv.getMessager().printMessage(Kind.ERROR,"only public types are supported", declType.asElement());
+                if(displayError){
+                    processingEnv.getMessager().printMessage(Kind.ERROR,"only public types are supported", declType.asElement());
+                }
                 return true;
             }
         }
@@ -272,7 +273,7 @@ public class JSONCreator extends AbstractProcessor {
     private void addPropertyToJSON(ClassWriter writer, JSONOperation jsonOperation,String jsonObjectName) throws IOException {
         TypeMirror type = jsonOperation.getType();
         String typeName = type.toString();
-        String val = jsonOperation.getAccessor("obj");//TODO check if obj is correct here
+        String val = jsonOperation.getAccessor("obj");
         if(hasVisibilityProblems(type,false)){
             return;
         }
@@ -312,10 +313,10 @@ public class JSONCreator extends AbstractProcessor {
 
             String dataName=jsonObjectName+capitalizeFirst(jsonOperation.getAttributeName()).replaceAll("\\[.*]","");
             String collectionName=dataName+"Collection";
-            String jsonArrayName=dataName+"JSONArray";//TODO null safe
+            String jsonArrayName=dataName+"JSONArray";
 
             writer.addAssignment(JSONArray.class.getCanonicalName()+" "+jsonArrayName,"new "+JSONArray.class.getCanonicalName()+"()");
-            writer.addAssignment(type.toString()+" "+collectionName,val);
+            writer.addAssignment(type +" "+collectionName,val);
             writer.beginIf(collectionName+"!=null");
             writer.beginForEach(collectionType.toString(),dataName,collectionName);
 
@@ -345,9 +346,9 @@ public class JSONCreator extends AbstractProcessor {
             TypeElement referencedElement = processingEnv.getElementUtils().getTypeElement(typeName);
             if(referencedElement != null && referencedElement.getAnnotation(GenerateJSON.class) != null) {
                 if(jsonOperation.isChildType()){
-                    writer.addMethodCall(jsonObjectName, "put", referencedElement.toString() + "JSONLoader.toJSONObject(" + val + ")");
+                    writer.addMethodCall(jsonObjectName, "put", referencedElement + "JSONLoader.toJSONObject(" + val + ")");
                 }else{
-                    writer.addMethodCall(jsonObjectName, "put", "\"" + jsonOperation.getAttributeName() + "\"", referencedElement.toString() + "JSONLoader.toJSONObject(" + val + ")");
+                    writer.addMethodCall(jsonObjectName, "put", "\"" + jsonOperation.getAttributeName() + "\"", referencedElement + "JSONLoader.toJSONObject(" + val + ")");
                 }
             }
         }

@@ -5,7 +5,7 @@ import javax.lang.model.type.TypeMirror;
 public class FieldOperation extends JSONOperation{
 
     public FieldOperation(String attributeName, TypeMirror type) {
-        super(attributeName, OperationType.FIELD, type);
+        super(attributeName, type);
     }
 
     @Override

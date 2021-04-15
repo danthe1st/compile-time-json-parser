@@ -1,4 +1,4 @@
-package io.github.danthe1st.json_compile_example;
+package io.github.danthe1st.json_compile_example.maven;
 
 import io.github.danthe1st.json_compile.api.GenerateJSON;
 
@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 
 @GenerateJSON
 public class TestClass {
-	private int privVal;
+	private int privVal;//private values without getters/setters-->ignored
 	public String pubVal;
 
-	public int[][] data={{1,2,3},{},{1,2,3,4,5,6}};
+	public int[][] data={{1,2,3},{},{1,2,3,4,5,6}};//private values without getters/setters-->used
 
 	private ReferencedClass otherObject=new ReferencedClass();
 

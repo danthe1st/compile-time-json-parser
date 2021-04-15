@@ -1,4 +1,4 @@
-package io.github.danthe1st.json_compile_example;
+package io.github.danthe1st.json_compile_example.maven;
 
 import io.github.danthe1st.json_compile.api.GenerateJSON;
 

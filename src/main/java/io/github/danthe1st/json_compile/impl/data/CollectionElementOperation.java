@@ -5,7 +5,7 @@ import javax.lang.model.type.TypeMirror;
 public class CollectionElementOperation extends JSONOperation{
     private final String collectionName;
     public CollectionElementOperation(String collectionName,String elementName, TypeMirror type) {
-        super(elementName, OperationType.ARRAY_ELEMENT, type);
+        super(elementName, type);
         this.collectionName=collectionName;
     }
 
@@ -26,6 +26,6 @@ public class CollectionElementOperation extends JSONOperation{
 
     @Override
     public String getJSONAccessName() {
-        return getAttributeName();//TODO use counter here
+        return getAttributeName();
     }
 }

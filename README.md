@@ -1,4 +1,4 @@
-# Compile-time JSON-parser
+# Compile-time JSON-parser [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.danthe1st/compile-time-json-parser/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.danthe1st/compile-time-json-parser)
 > generates a JSON-parser for Java-objects at compile-time
 
 Compile-time JSON-parser supports both non-private variables and properties.
@@ -10,12 +10,12 @@ The generated JSON-parser uses `org.json:json`.
 * Download the sources
 * Run `mvn clean install` in the directory of Compile-time JSON-parser
 * Create a Maven Project in IntelliJ where you want to use Compile-time JSON-parser
-* Add the following dependency to the `pom.xml` of the project where you want to use Compile-time JSON-parser
+* Add the following dependency to the `pom.xml` of the project where you want to use Compile-time JSON-parser (replace `VERSION` with the version from [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.danthe1st/compile-time-json-parser/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.danthe1st/compile-time-json-parser))
 ```xml
 <dependency>
     <groupId>io.github.danthe1st</groupId>
     <artifactId>compile-time-json-parser</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>VERSION</version>
 </dependency>
 ```
 * If you wish to use JPMS, also add the annotation processor to the `maven-compiler-plugin`
@@ -39,6 +39,7 @@ The generated JSON-parser uses `org.json:json`.
 
 ### Usage
 * Create a data class and annotate it with `@GenerateJSON` like this:
+
 ```java
 import io.github.danthe1st.json_compile.api.GenerateJSON;
 @GenerateJSON
@@ -75,6 +76,7 @@ public class TestClass {
 ```
 * When compiling the class, a class suffixed with `JSONLoader` should be automatically generated.<br/>
   This class contains a method named `fromJSON` that creates an instance of the data class from a `String`:
+  
 ```java
 String json= String.join("", Files.readAllLines(Path.of("testClass.json")));
 TestClass obj = TestClassJSONLoader.fromJSON(json);
@@ -115,7 +117,6 @@ An example project can be found in the directory `examples/maven-example`.
 * Objects annotated with `@GenerateJSON` need to have a no-args-constructor
 * Collections need to be initialized in the constructor
 * Generic objects are not supported (except generic collections)
-* Compile-time JSON-parser is not yet published to maven central, so you will have to build it by yourself.
 * Configuration is not supported
 
 ### IDE-specific configuration

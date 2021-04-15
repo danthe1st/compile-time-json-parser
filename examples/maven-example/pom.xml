@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.danthe1st</groupId>
 	<artifactId>json-parser-maven-example</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<dependencies>
 		<dependency>
 			<groupId>io.github.danthe1st</groupId>
 			<artifactId>compile-time-json-parser</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>

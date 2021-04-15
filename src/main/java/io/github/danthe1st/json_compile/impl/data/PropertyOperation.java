@@ -7,7 +7,7 @@ import javax.lang.model.type.TypeMirror;
 public class PropertyOperation extends JSONOperation{
 
     public PropertyOperation(String attributeName, TypeMirror type) {
-        super(attributeName, OperationType.PROPERTY, type);
+        super(attributeName, type);
     }
 
     @Override
