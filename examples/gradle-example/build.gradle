@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+}
+
+group 'io.github.danthe1st'
+version '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor 'io.github.danthe1st:compile-time-json-parser:1.0.0'
+    implementation 'io.github.danthe1st:compile-time-json-parser:1.0.0'
+}
