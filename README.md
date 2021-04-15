@@ -18,6 +18,23 @@ The generated JSON-parser uses `org.json:json`.
     <version>0.0.1-SNAPSHOT</version>
 </dependency>
 ```
+* If you wish to use JPMS, also add the annotation processor to the `maven-compiler-plugin`
+```xml
+<plugin>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>3.8.1</version>
+	<configuration>
+		<release>11</release>
+		<annotationProcessorPaths>
+			<annotationProcessorPath>
+				<groupId>io.github.danthe1st</groupId>
+				<artifactId>compile-time-json-parser</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</annotationProcessorPath>
+		</annotationProcessorPaths>
+	</configuration>
+</plugin>
+```
 * Enable annotation processing for this project under `Settings`>`Build, Execution, Deployment`>`Compiler`>`Annotation Processors`>`Enable Annotation Processing`
 
 ### Usage
