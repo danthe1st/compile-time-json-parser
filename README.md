@@ -29,7 +29,7 @@ The generated JSON-parser uses `org.json:json`.
 			<annotationProcessorPath>
 				<groupId>io.github.danthe1st</groupId>
 				<artifactId>compile-time-json-parser</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
+				<version>VERSION</version>
 			</annotationProcessorPath>
 		</annotationProcessorPaths>
 	</configuration>
