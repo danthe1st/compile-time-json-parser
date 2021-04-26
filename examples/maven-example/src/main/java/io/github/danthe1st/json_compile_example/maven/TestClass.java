@@ -1,6 +1,8 @@
 package io.github.danthe1st.json_compile_example.maven;
 
 import io.github.danthe1st.json_compile.api.GenerateJSON;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,6 +26,8 @@ public class TestClass {
 	private List<ReferencedClass[]> list=new ArrayList<>();
 
 	private TestEnum someEnum;
+
+	private JSONObject someJSONData;
 	
 	public int getProp() {
 		return privVal;
@@ -56,6 +60,14 @@ public class TestClass {
 		this.someEnum = someEnum;
 	}
 
+	public JSONObject getSomeJSONData() {
+		return someJSONData;
+	}
+
+	public void setSomeJSONData(JSONObject someJSONData) {
+		this.someJSONData = someJSONData;
+	}
+
 	@Override
 	public String toString() {
 		return "TestClass{" +
@@ -65,6 +77,7 @@ public class TestClass {
 				", otherObject=" + otherObject +
 				", list=[" + list.stream().map(Arrays::toString).collect(Collectors.joining(", "))+"]" +
 				", someEnum=" + someEnum +
+				", someJSONData=" + someJSONData +
 				'}';
 	}
 
@@ -86,6 +99,8 @@ public class TestClass {
 		testObj.list.add(new ReferencedClass[0]);
 
 		testObj.someEnum=TestEnum.C;
+
+		testObj.setSomeJSONData(new JSONObject("{'hellodata':'world'}"));
 
 		System.out.println(TestClassJSONLoader.toJSON(testObj));
 	}

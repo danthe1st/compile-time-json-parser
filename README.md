@@ -111,6 +111,7 @@ An example project can be found in the directory `examples/maven-example`.
 * Objects of classes annotated with `@GenerateJSON`
 * `Collection`s if they are not part of other collections or arrays, `Collections` of classes annotated with `@GenerateJSON` that contain collections are supported, however
 * Arrays
+* `org.json.JSONObject` and `org.json.JSONArray`
 
 ### Limitations
 * It is not possible to create an array/collection of collections

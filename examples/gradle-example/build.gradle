@@ -11,6 +11,6 @@ repositories {
 }
 
 dependencies {
-    annotationProcessor 'io.github.danthe1st:compile-time-json-parser:1.0.0'
-    implementation 'io.github.danthe1st:compile-time-json-parser:1.0.0'
+    annotationProcessor 'io.github.danthe1st:compile-time-json-parser:1.1.0'
+    implementation 'io.github.danthe1st:compile-time-json-parser:1.1.0'
 }

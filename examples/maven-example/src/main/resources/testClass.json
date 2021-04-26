@@ -31,5 +31,10 @@
     [],
     null
   ],
-  "someEnum": "B"
+  "someEnum": "B",
+  "someJSONData": {
+    "whoami": "someJSONObject",
+    "a": 1,
+    "b": null
+  }
 }
